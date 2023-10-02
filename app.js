@@ -23,6 +23,9 @@ app.get("/api/movies/:id", movieHandlers.getMovieById);
 // Création de la route POST, pour renvoyer 'route is working' : 
 app.post("/api/movies", movieHandlers.postMovie);
 
+// création de la route pour la mise à jour de la base de données : 
+app.put("/api/movies/:id", movieHandlers.updateMovie);
+
 
 
 const userHandlers = require("./userHandlers")
@@ -32,7 +35,9 @@ app.get("/api/users/:id", userHandlers.getUserById);
 
 // Création de la route POST, pour renvoyer 'route is working' : 
 app.post("/api/users", userHandlers.postUser);
-// console.log(userHandlers)
+
+// création de la route pour la mise à jour de la base de données : 
+app.put("/api/users/:id", userHandlers.updateUser);
 
 
 app.listen(port, (err) => {

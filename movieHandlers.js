@@ -91,9 +91,36 @@ const getMovieById = (req, res) => {
 
 
 
+// Mise a jour (update) de la base de données : 
+const updateMovie = (req, res) => {
+  const id = parseInt(req.params.id);
+  const { title, director, year, color, duration } = req.body;
+
+  database
+    .query(
+      "update movies set title = ?, director = ?, year = ?, color = ?, duration = ? where id = ?",
+      [title, director, year, color, duration, id]
+    )
+    .then(([result]) => {
+      if (result.affectedRows === 0) {
+        res.status(404).send("Not Found");
+      } else {
+        res.sendStatus(204);
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send("Error editing the movie");
+    });
+};
+  
+
+
+
 // Export des fonction crées juste au dessus pour pouvoir les utiliser dans l'app (App.js) : 
 module.exports = {
   getMovies,
   getMovieById,
   postMovie, // don't forget to export your function ;)
+  updateMovie,
 };
