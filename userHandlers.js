@@ -56,9 +56,36 @@ const users = [
       },
   ];
   
-  const getUsers = (req, res) => {
-    database
-    .query("select * from users")
+  // const getUsers = (req, res) => {
+  //   database
+  //   .query("select * from users")
+  //   .then(([users]) => {
+  //     res.json(users);
+  //   })
+  //   .catch((err) => {
+  //     console.error(err);
+  //     res.status(500).send("Error retrieving data from database");
+  //   });
+  // };
+
+
+// GET en détail : 
+const getUsers = (req, res) => {
+  let sql = "select * from users";
+const sqlValues = [];
+
+if (req.query.language != null) {
+  sql += " where language = ?";
+  sqlValues.push(req.query.language);
+}
+
+if (req.query.city != null) {
+  sql += " where city = ?";
+  sqlValues.push(req.query.city);
+}
+
+  database
+    .query(sql, sqlValues)
     .then(([users]) => {
       res.json(users);
     })
@@ -66,8 +93,11 @@ const users = [
       console.error(err);
       res.status(500).send("Error retrieving data from database");
     });
-  };
-  
+};
+
+
+
+// GET un User by son ID : 
     const getUserById = (req, res) => {
       const id = parseInt(req.params.id);
     
