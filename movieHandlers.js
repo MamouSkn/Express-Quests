@@ -115,6 +115,25 @@ const updateMovie = (req, res) => {
 };
   
 
+// Creation de la route pour supprimer (DELETE) les données de la BDD : 
+const deleteMovie = (req, res) => {
+  const id = parseInt(req.params.id);
+
+  database
+    .query("delete from movies where id = ?", [id])
+    .then(([result]) => {
+      if (result.affectedRows === 0) {
+        res.status(404).send("Not Found");
+      } else {
+        res.sendStatus(204);
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send("Error deleting the movie");
+    });
+};
+
 
 
 // Export des fonction crées juste au dessus pour pouvoir les utiliser dans l'app (App.js) : 
@@ -123,4 +142,5 @@ module.exports = {
   getMovieById,
   postMovie, // don't forget to export your function ;)
   updateMovie,
+  deleteMovie,
 };
