@@ -27,10 +27,25 @@ const movies = [
   },
 ];
 
+
+// Création de la fonction de requêtage pour fetch un film sur l'API avec le mot clé 'get' : 
+// const getMovies = (req, res) => {
+//   res.json(movies);
+// };
 const getMovies = (req, res) => {
-  res.json(movies);
+  database
+  .query("select * from movies")
+  .then(([movies]) => {
+    res.json(movies);
+  })
+  .catch((err) => {
+    console.error(err);
+    res.status(500).send("Error retrieving data from database");
+  });
 };
 
+
+// Création de la fonction de requêtage pour fetch un film par son Id avec le mot clé 'get' :
 const getMovieById = (req, res) => {
   const id = parseInt(req.params.id);
 
@@ -50,7 +65,35 @@ const getMovieById = (req, res) => {
       });
 };
 
+
+// Création de la fonction de requêtage de création de film avec le mot clé 'post' :
+// const postMovie = (req, res) => {
+  // console.log(req.body);
+  // res.send("Post route is working 🎉");
+// };
+  const postMovie = (req, res) => {
+    const { title, director, year, color, duration } = req.body;
+
+    database
+    .query(
+      "INSERT INTO movies(title, director, year, color, duration) VALUES (?, ?, ?, ?, ?)",
+      [title, director, year, color, duration]
+    )
+    .then(([result]) => {
+      // wait for it
+      res.location(`/api/movies/${result.insertId}`).sendStatus(201);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send("Error saving the movie");
+    });
+  };
+
+
+
+// Export des fonction crées juste au dessus pour pouvoir les utiliser dans l'app (App.js) : 
 module.exports = {
   getMovies,
   getMovieById,
+  postMovie, // don't forget to export your function ;)
 };
