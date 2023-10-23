@@ -1,94 +1,33 @@
 const database = require("./database");
 
-const users = [
-    {  
-      id: 1,
-      firstname: "John",
-      lastname:'Doe',
-      email:'john.doe@example.com',
-      city:'Paris',
-      language: 'English',
-    
-    },
-    {
-      id: 2,
-      firstname:'Valeriy',
-      lastname:'Appius',
-      email:'valeriy.appius@example.com',
-      city: 'Moscow',
-      language: 'Russian',
-    },
-    {
-      id: 3,
-      firstname:'Ralf',
-      lastname:'Geronimo',
-      email:'ralf.geronimo@example.com',
-      city:'New York',
-      language:'Italian'
-    },
-
-    {
-        id: 4,
-        firstname:'Maria',
-        lastname:'Iskandar',
-        email:'maria.iskandar@example.com',
-        city:'New York',
-        language:'German'
-
-      },
-
-      {
-        id: 5,
-        firstname:'Jane',
-        lastname:'Doe',
-        email:'jane.doe@example.com',
-        city:'London',
-        language:'English'
-      },
-
-      {
-        id: 6,
-        firstname:'Johanna',
-        lastname:'Martino',
-        email:'johanna.martino@example.com',
-        city:'Milan',
-        language:'Spanish'
-      },
-  ];
-  
-  // const getUsers = (req, res) => {
-  //   database
-  //   .query("select * from users")
-  //   .then(([users]) => {
-  //     res.json(users);
-  //   })
-  //   .catch((err) => {
-  //     console.error(err);
-  //     res.status(500).send("Error retrieving data from database");
-  //   });
-  // };
-
-
-// GET en détail : 
 const getUsers = (req, res) => {
-  let sql = "select * from users";
-const sqlValues = [];
-
-if (req.query.language != null) {
-  sql += " where language = ?";
-  sqlValues.push(req.query.language);
+  const initialSql = "select firstname, lastname, email, city, language from users";
+  const where = [];
 
   if (req.query.city != null) {
-    sql += " and city = ?";
-    sqlValues.push(req.query.city);
+    where.push({
+      column: "city",
+      value: req.query.city,
+      operator: "=",
+    });
   }
-}  else if (req.query.city != null) {
-    sql += " where city = ?";
-    sqlValues.push(req.query.city);
-}
+  if (req.query.language != null) {
+    where.push({
+      column: "language",
+      value: req.query.language,
+      operator: "=",
+    });
+  }
 
   database
-    .query(sql, sqlValues)
+    .query(
+      where.reduce(
+        (sql, { column, operator }, index) =>
+          `${sql} ${index === 0 ? "where" : "and"} ${column} ${operator} ?`,
+        initialSql
+      ),
+      where.map(({ value }) => value)
+    )
     .then(([users]) => {
       res.json(users);
     })
@@ -98,36 +37,32 @@ if (req.query.language != null) {
     });
 };
 
+const getUserById = (req, res) => {
+  const id = parseInt(req.params.id);
 
+  database
+    .query("select * from users where id = ?", [id])
+    .then(([users]) => {
+      if (users[0] != null) {
+        res.json(users[0]);
+      } else {
+        res.status(404).send("Not Found");
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send("Error retrieving data from database");
+    });
+};
 
-// GET un User by son ID : 
-    const getUserById = (req, res) => {
-      const id = parseInt(req.params.id);
-    
-      database
-        .query("select * from users where id = ?", [id])
-        .then(([users]) => {
-          if (users[0] != null) {
-            res.json(users[0]);
-          } else {
-            res.status(404).send("Not Found");
-          }
-        })
-        .catch((err) => {
-          console.error(err);
-          res.status(500).send("Error retrieving data from database");
-        });
-    };
-
-
-// Création de la fonction de requêtage de création d'un utilisateur avec le mot clé 'post' :
 const postUser = (req, res) => {
-  const { firstname, lastname, email, city, language } = req.body;
+  const { firstname, lastname, email, city, language, hashedPassword } =
+    req.body;
 
-    database
+  database
     .query(
-      "INSERT INTO users(firstname, lastname, email, city, language) VALUES (?, ?, ?, ?, ?)",
-      [firstname, lastname, email, city, language]
+      "INSERT INTO users(firstname, lastname, email, city, language, hashedPassword) VALUES (?, ?, ?, ?, ?, ?)",
+      [firstname, lastname, email, city, language, hashedPassword]
     )
     .then(([result]) => {
       res.location(`/api/users/${result.insertId}`).sendStatus(201);
@@ -137,17 +72,15 @@ const postUser = (req, res) => {
       res.status(500).send("Error saving the user");
     });
 };
-  
 
-// Mise a jour (update) de la base de données : 
 const updateUser = (req, res) => {
   const id = parseInt(req.params.id);
-  const { firstname, lastname, email, city, language } = req.body;
+  const { firstname, lastname, email, city, language, hashedPassword } = req.body;
 
   database
     .query(
-      "update users set firstname = ?, lastname = ?, email = ?, city = ?, language = ? where id = ?",
-      [firstname, lastname, email, city, language, id]
+      "update users set firstname = ?, lastname = ?, email = ?, city = ?, language = ?, hashedPassword = ? where id = ?",
+      [firstname, lastname, email, city, language, hashedPassword, id]
     )
     .then(([result]) => {
       if (result.affectedRows === 0) {
@@ -162,8 +95,6 @@ const updateUser = (req, res) => {
     });
 };
 
-
-// Creation de la route pour supprimer (DELETE) les données de la BDD : 
 const deleteUser = (req, res) => {
   const id = parseInt(req.params.id);
 
@@ -182,11 +113,10 @@ const deleteUser = (req, res) => {
     });
 };
 
-
-  module.exports = {
-    getUsers,
-    getUserById,
-    postUser,
-    updateUser,
-    deleteUser,
-  };
+module.exports = {
+  getUsers,
+  getUserById,
+  postUser,
+  updateUser,
+  deleteUser,
+};
