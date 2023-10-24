@@ -41,7 +41,7 @@ const getUserById = (req, res) => {
   const id = parseInt(req.params.id);
 
   database
-    .query("select * from users where id = ?", [id])
+    .query("select firstname, lastname, email, city, language from users where id = ?", [id])
     .then(([users]) => {
       if (users[0] != null) {
         res.json(users[0]);
@@ -54,6 +54,28 @@ const getUserById = (req, res) => {
       res.status(500).send("Error retrieving data from database");
     });
 };
+
+
+const getUserByEmailWithPasswordAndPassToNext = (req, res) => {
+  const { email } = req.body;
+
+  database
+    .query("select * from users where email = ?", [email])
+    .then(([users]) => {
+      if (users[0] != null) {
+        res.user = users[0];
+
+        next();
+      } else {
+        res.sendStatus(401);
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send("Error retrieving data from database");
+    });
+};
+
 
 const postUser = (req, res) => {
   const { firstname, lastname, email, city, language, hashedPassword } =
@@ -116,6 +138,7 @@ const deleteUser = (req, res) => {
 module.exports = {
   getUsers,
   getUserById,
+  getUserByEmailWithPasswordAndPassToNext,
   postUser,
   updateUser,
   deleteUser,

@@ -25,7 +25,7 @@ app.put("/api/movies/:id", movieHandlers.updateMovie);
 app.delete("/api/movies/:id", movieHandlers.deleteMovie);
 
 const userHandlers = require("./userHandlers");
-const { hashPassword } = require("./auth.js");
+const { hashPassword, verifyPassword } = require("./auth");
 
 app.get("/api/users", userHandlers.getUsers);
 app.get("/api/users/:id", userHandlers.getUserById);
@@ -41,3 +41,36 @@ app.listen(port, (err) => {
   }
 });
 
+// in app.js
+
+const isItDwight = (req, res) => {
+  if (req.body.email === "dwight@theoffice.com" && req.body.password === "123456") {
+    res.send("Credentials are valid");
+  } else {
+    res.sendStatus(401);
+  }
+};
+
+// app.post("/api/login", isItDwight);
+
+// const isItMe = (req, res) => {
+//   if (req.body.email === "lem@lawild.com" && req.body.password === "wildeuse") {
+//     res.send("Credentials are valid");
+//   } else {
+//     res.sendStatus(401);
+//   }
+// };
+
+// app.post("/api/login", isItMe);
+
+// ...
+
+// const verifyPassword = (req, res) => {
+//   res.send(req.user);
+// }
+
+app.post(
+  "/api/login", isItDwight,
+  userHandlers.getUserByEmailWithPasswordAndPassToNext,
+  verifyPassword
+);
