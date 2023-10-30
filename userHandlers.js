@@ -1,7 +1,7 @@
 const database = require("./database");
 
 const getUsers = (req, res) => {
-  const initialSql = "select firstname, lastname, email, city, language from users";
+  const initialSql = "select * from users";
   const where = [];
 
   if (req.query.city != null) {
@@ -56,14 +56,14 @@ const getUserById = (req, res) => {
 };
 
 
-const getUserByEmailWithPasswordAndPassToNext = (req, res) => {
+const getUserByEmailWithPasswordAndPassToNext = (req, res, next) => {
   const { email } = req.body;
 
   database
     .query("select * from users where email = ?", [email])
     .then(([users]) => {
       if (users[0] != null) {
-        res.user = users[0];
+        req.user = users[0];
 
         next();
       } else {
@@ -75,7 +75,6 @@ const getUserByEmailWithPasswordAndPassToNext = (req, res) => {
       res.status(500).send("Error retrieving data from database");
     });
 };
-
 
 const postUser = (req, res) => {
   const { firstname, lastname, email, city, language, hashedPassword } =
